@@ -1,0 +1,17 @@
+<div class="unauthorized-container">
+      <mat-card class="unauthorized-card">
+        <mat-card-header>
+          <div mat-card-avatar class="icon-avatar">
+            <mat-icon color="warn">lock</mat-icon>
+          </div>
+          <mat-card-title>Access Denied</mat-card-title>
+          <mat-card-subtitle>403 - Forbidden</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p>You do not have permission to view this page or access this resource.</p>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-flat-button color="primary" (click)="goToHome()">Return to Dashboard</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>

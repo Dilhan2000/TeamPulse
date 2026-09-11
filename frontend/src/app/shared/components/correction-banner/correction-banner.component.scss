@@ -1,0 +1,63 @@
+.correction-banner {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border: 1px solid #fcd34d;
+        border-left: 5px solid #f59e0b;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.08);
+      }
+
+      .banner-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d97706;
+      }
+
+      .banner-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+
+      .banner-content {
+        flex: 1;
+      }
+
+      .banner-title {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        color: #92400e;
+        margin-bottom: 6px;
+      }
+
+      .reviewer-tag {
+        font-size: 13px;
+        font-weight: 600;
+        color: #b45309;
+        background: rgba(245, 158, 11, 0.15);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+
+      .review-date {
+        font-size: 12px;
+        font-weight: 400;
+        color: #78350f;
+        margin-left: auto;
+      }
+
+      .banner-message {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #78350f;
+        white-space: pre-line;
+      }

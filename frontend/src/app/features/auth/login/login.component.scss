@@ -1,0 +1,89 @@
+.auth-page-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        padding: 24px;
+      }
+      .auth-card {
+        width: 100%;
+        max-width: 440px;
+        padding: 32px 24px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+        background: #ffffff;
+      }
+      .auth-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 24px;
+      }
+      .brand-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: #2563eb;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+      }
+      .auth-header mat-card-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+      .auth-header mat-card-subtitle {
+        color: #64748b;
+        font-size: 14px;
+      }
+      .error-banner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+      .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .submit-btn {
+        height: 48px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 8px;
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .spinner {
+        display: inline-block;
+      }
+      .auth-footer {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 14px;
+        color: #64748b;
+      }
+      .auth-link {
+        color: #2563eb;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .auth-link:hover {
+        text-decoration: underline;
+      }

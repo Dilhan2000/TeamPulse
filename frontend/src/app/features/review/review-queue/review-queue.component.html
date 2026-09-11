@@ -1,0 +1,138 @@
+<div class="queue-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Manager Review Queue</h1>
+          <p class="page-subtitle">Review submitted weekly reports from team members and take approval actions</p>
+        </div>
+      </div>
+
+      <!-- Filters Card -->
+      <mat-card class="filter-card">
+        <div class="filter-row">
+          <!-- Status Filter -->
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onFilterChange()">
+              <mat-option [value]="null">All Statuses</mat-option>
+              <mat-option value="SUBMITTED">Submitted (Pending Review)</mat-option>
+              <mat-option value="NEEDS_CORRECTION">Needs Correction</mat-option>
+              <mat-option value="APPROVED">Approved</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Project Filter -->
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Project</mat-label>
+            <mat-select [(ngModel)]="selectedProjectId" (selectionChange)="onFilterChange()">
+              <mat-option [value]="null">All Projects</mat-option>
+              @for (p of projects(); track p.id) {
+                <mat-option [value]="p.id">{{ p.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-stroked-button class="reset-btn" (click)="resetFilters()">
+            <mat-icon>clear_all</mat-icon>
+            <span>Reset</span>
+          </button>
+        </div>
+      </mat-card>
+
+      <!-- Main Content Card -->
+      <mat-card class="table-card">
+        @if (isLoading()) {
+          <div class="loading-state">
+            <mat-spinner diameter="44"></mat-spinner>
+            <p>Loading review queue...</p>
+          </div>
+        } @else if (reports().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon-circle">
+              <mat-icon>task_alt</mat-icon>
+            </div>
+            <h3>Queue is Empty</h3>
+            <p>There are no reports matching your current filter criteria.</p>
+          </div>
+        } @else {
+          <div class="table-responsive">
+            <table mat-table [dataSource]="reports()" class="reports-table">
+              <!-- Team Member -->
+              <ng-container matColumnDef="member">
+                <th mat-header-cell *matHeaderCellDef>Team Member</th>
+                <td mat-cell *matCellDef="let r">
+                  <div class="member-cell">
+                    <span class="member-avatar">{{ getInitials(r.userName || 'U') }}</span>
+                    <span class="member-name">{{ r.userName || 'Team Member' }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Project -->
+              <ng-container matColumnDef="project">
+                <th mat-header-cell *matHeaderCellDef>Project</th>
+                <td mat-cell *matCellDef="let r">
+                  <span class="project-tag">{{ r.projectName }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Week -->
+              <ng-container matColumnDef="week">
+                <th mat-header-cell *matHeaderCellDef>Week Covered</th>
+                <td mat-cell *matCellDef="let r" class="week-cell">
+                  <span class="week-primary">{{ r.weekStartDate | date: 'mediumDate' }}</span>
+                  <span class="week-secondary">to {{ r.weekEndDate | date: 'mediumDate' }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Submitted At -->
+              <ng-container matColumnDef="submittedAt">
+                <th mat-header-cell *matHeaderCellDef>Submitted</th>
+                <td mat-cell *matCellDef="let r" class="date-cell">
+                  {{ r.submittedAt ? (r.submittedAt | date: 'medium') : '—' }}
+                </td>
+              </ng-container>
+
+              <!-- Status -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let r">
+                  <span class="status-chip" [ngClass]="r.status.toLowerCase()">
+                    {{ formatStatus(r.status) }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Actions -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+                <td mat-cell *matCellDef="let r" class="actions-cell">
+                  <a
+                    mat-flat-button
+                    color="primary"
+                    [routerLink]="['/manager/reports', r.id, 'review']"
+                    class="action-btn"
+                  >
+                    <mat-icon>rate_review</mat-icon>
+                    <span>Review</span>
+                  </a>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
+            </table>
+          </div>
+
+          <mat-paginator
+            [length]="totalElements()"
+            [pageSize]="pageSize()"
+            [pageIndex]="pageIndex()"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            (page)="onPageChange($event)"
+            aria-label="Select page of review queue"
+            class="paginator"
+          >
+          </mat-paginator>
+        }
+      </mat-card>
+    </div>

@@ -1,0 +1,256 @@
+<div class="dashboard-page">
+  <!-- Page Header -->
+  <header class="dashboard-header">
+    <div class="header-titles">
+      <h1 class="page-title">Manager Dashboard</h1>
+      <p class="page-subtitle">Team performance metrics, compliance overview, and workload insights</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button class="action-btn" (click)="loadAll()" [disabled]="loadingSummary()">
+        <mat-icon [class.spinning]="loadingSummary()">refresh</mat-icon>
+        Refresh
+      </button>
+      <button mat-flat-button color="primary" class="action-btn primary" (click)="navigateToReviewQueue()">
+        <mat-icon>rate_review</mat-icon>
+        Team Reports
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI Summary Cards -->
+  <section class="kpi-grid">
+    <!-- Tile 1: Submitted This Week -->
+    <mat-card class="kpi-card">
+      <mat-card-content>
+        <div class="kpi-icon-wrapper blue">
+          <mat-icon>assignment_turned_in</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Submitted This Week</span>
+          <div class="kpi-value-row">
+            <span class="kpi-value">{{ summary()?.totalSubmittedThisWeek ?? summary()?.submittedThisWeek ?? 0 }}</span>
+            <span class="kpi-denom">/ {{ summary()?.compliance?.totalActiveTeamMembers ?? summary()?.compliance?.totalActiveMembers ?? 0 }} members</span>
+          </div>
+          <span class="kpi-detail">Current reporting cycle</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tile 2: Compliance -->
+    <mat-card class="kpi-card">
+      <mat-card-content>
+        <div class="kpi-icon-wrapper green">
+          <mat-icon>verified</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Team Compliance</span>
+          <div class="kpi-chips-row">
+            <span class="status-chip chip-submitted">
+              {{ summary()?.compliance?.submitted ?? 0 }} Submitted
+            </span>
+            <span class="status-chip chip-pending">
+              {{ summary()?.compliance?.pending ?? 0 }} Pending
+            </span>
+            <span class="status-chip chip-late" *ngIf="(summary()?.compliance?.late ?? 0) > 0">
+              {{ summary()?.compliance?.late }} Late
+            </span>
+          </div>
+          <span class="kpi-detail">Friday 23:59:59 cutoff</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tile 3: Needs Correction Backlog -->
+    <mat-card class="kpi-card" [class.has-alert]="(summary()?.needsCorrectionCount ?? 0) > 0">
+      <mat-card-content>
+        <div class="kpi-icon-wrapper amber">
+          <mat-icon>rule</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Needs Correction</span>
+          <div class="kpi-value-row">
+            <span class="kpi-value" [class.text-amber]="(summary()?.needsCorrectionCount ?? 0) > 0">
+              {{ summary()?.needsCorrectionCount ?? 0 }}
+            </span>
+          </div>
+          <span class="kpi-detail">Pending member revision</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tile 4: Open Blockers Backlog -->
+    <mat-card class="kpi-card" [class.has-alert]="(summary()?.openBlockersCount ?? 0) > 0">
+      <mat-card-content>
+        <div class="kpi-icon-wrapper rose">
+          <mat-icon>warning_amber</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Open Blockers</span>
+          <div class="kpi-value-row">
+            <span class="kpi-value" [class.text-rose]="(summary()?.openBlockersCount ?? 0) > 0">
+              {{ summary()?.openBlockersCount ?? 0 }}
+            </span>
+          </div>
+          <span class="kpi-detail">Unresolved team impediments</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <!-- Filter Toolbar -->
+  <section class="filter-toolbar">
+    <div class="toolbar-left">
+      <span class="toolbar-label">Trend Window:</span>
+      <mat-button-toggle-group [(ngModel)]="selectedWeeks" (change)="onWeeksChange()" class="weeks-toggle">
+        <mat-button-toggle [value]="4">4 Weeks</mat-button-toggle>
+        <mat-button-toggle [value]="8">8 Weeks</mat-button-toggle>
+        <mat-button-toggle [value]="12">12 Weeks</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <div class="toolbar-right" *ngIf="aiChatService.aiAvailable()">
+      <button
+        mat-stroked-button
+        color="primary"
+        class="ai-summary-btn"
+        (click)="openSummaryDialog()"
+        [disabled]="loadingSummary()"
+        aria-label="Generate Team Summary"
+      >
+        <mat-icon class="sparkle-icon">auto_awesome</mat-icon>
+        Generate Team Summary
+      </button>
+    </div>
+  </section>
+
+  <!-- Charts Grid (2x2) -->
+  <section class="charts-grid">
+    <!-- Chart 1: Tasks Completed Trend -->
+    <mat-card class="chart-card">
+      <div class="chart-card-header">
+        <div class="header-meta">
+          <h2 class="chart-title">Tasks Completed Trend</h2>
+          <span class="chart-subtitle">Weekly completed task volume</span>
+        </div>
+        <div class="trend-controls">
+          <mat-button-toggle-group
+            [value]="trendScope"
+            (change)="onTrendScopeChange($event.value)"
+            class="scope-toggle"
+          >
+            <mat-button-toggle value="ALL">All Team</mat-button-toggle>
+            <mat-button-toggle value="INDIVIDUAL">By Member</mat-button-toggle>
+          </mat-button-toggle-group>
+
+          <mat-form-field *ngIf="trendScope === 'INDIVIDUAL'" appearance="outline" class="member-select-field" subscriptSizing="dynamic">
+            <mat-select
+              [(ngModel)]="selectedUserId"
+              (selectionChange)="onMemberSelectChange()"
+              placeholder="Select member"
+            >
+              <mat-option *ngFor="let member of teamMembers()" [value]="member.id">
+                {{ member.fullName }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div *ngIf="loadingTrend()" class="chart-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+        <canvas
+          *ngIf="!loadingTrend()"
+          baseChart
+          [data]="trendChartData"
+          [options]="trendChartOptions"
+          [type]="trendChartType"
+        ></canvas>
+      </div>
+    </mat-card>
+
+    <!-- Chart 2: Report Status by Team Member -->
+    <mat-card class="chart-card">
+      <div class="chart-card-header">
+        <div class="header-meta">
+          <h2 class="chart-title">Report Status by Member</h2>
+          <span class="chart-subtitle">Submission & approval breakdown per person</span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div *ngIf="loadingStatus()" class="chart-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+        <canvas
+          *ngIf="!loadingStatus()"
+          baseChart
+          [data]="statusChartData"
+          [options]="statusChartOptions"
+          [type]="statusChartType"
+        ></canvas>
+      </div>
+    </mat-card>
+
+    <!-- Chart 3: Workload by Project -->
+    <mat-card class="chart-card">
+      <div class="chart-card-header">
+        <div class="header-meta">
+          <h2 class="chart-title">Workload by Project</h2>
+          <span class="chart-subtitle">Total logged hours across active projects</span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div *ngIf="loadingWorkload()" class="chart-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+        <canvas
+          *ngIf="!loadingWorkload()"
+          baseChart
+          [data]="workloadChartData"
+          [options]="workloadChartOptions"
+          [type]="workloadChartType"
+        ></canvas>
+      </div>
+    </mat-card>
+
+    <!-- Chart 4: Time by Task Type -->
+    <mat-card class="chart-card">
+      <div class="chart-card-header">
+        <div class="header-meta">
+          <h2 class="chart-title">Time by Task Type</h2>
+          <span class="chart-subtitle">Distribution across the 5 standard categories</span>
+        </div>
+      </div>
+      <div class="chart-container doughnut-container">
+        <div *ngIf="loadingTimeType()" class="chart-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+        <canvas
+          *ngIf="!loadingTimeType()"
+          baseChart
+          [data]="taskTypeChartData"
+          [options]="taskTypeChartOptions"
+          [type]="taskTypeChartType"
+        ></canvas>
+      </div>
+    </mat-card>
+  </section>
+
+  <!-- Activity Feed Section -->
+  <section class="activity-section">
+    <mat-card class="activity-card">
+      <div class="activity-card-header">
+        <div class="header-meta">
+          <h2 class="section-title">Recent Activity Feed</h2>
+          <span class="section-subtitle">Real-time submissions, reviews, and corrections</span>
+        </div>
+        <button mat-button color="primary" (click)="navigateToReviewQueue()">
+          View All in Review Queue &rarr;
+        </button>
+      </div>
+      <div class="activity-body">
+        <app-activity-feed [items]="activityFeed()" [loading]="loadingFeed()"></app-activity-feed>
+      </div>
+    </mat-card>
+  </section>
+</div>

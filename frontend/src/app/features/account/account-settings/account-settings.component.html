@@ -1,0 +1,200 @@
+<div class="settings-page">
+  <!-- Page Header -->
+  <div class="settings-header">
+    <h1 class="page-title">Account Settings</h1>
+    <p class="page-subtitle">Manage your account information and security preferences</p>
+  </div>
+
+  <div class="settings-grid">
+    <!-- Profile Info Card -->
+    <mat-card class="settings-card profile-card">
+      <div class="card-header">
+        <mat-icon class="card-header-icon">person</mat-icon>
+        <h2 class="card-title">Profile Information</h2>
+      </div>
+
+      <div class="profile-body" *ngIf="currentUser() as user">
+        <div class="avatar-section">
+          <div class="user-avatar">
+            {{ getInitials(user.fullName) }}
+          </div>
+          <div class="user-main-info">
+            <h3 class="user-name">{{ user.fullName }}</h3>
+            <span class="user-email">{{ user.email }}</span>
+          </div>
+        </div>
+
+        <div class="profile-details-list">
+          <div class="detail-item">
+            <span class="detail-label">Role</span>
+            <span class="role-badge" [ngClass]="user.role.toLowerCase()">
+              {{ formatRole(user.role) }}
+            </span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Account Status</span>
+            <span class="status-badge" [ngClass]="user.status.toLowerCase()">
+              {{ user.status }}
+            </span>
+          </div>
+
+          <div class="detail-item" *ngIf="user.createdAt">
+            <span class="detail-label">Member Since</span>
+            <span class="detail-value">{{ user.createdAt | date: 'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <div class="profile-footer-note">
+          <mat-icon class="info-icon">info</mat-icon>
+          <span>Name and email changes are managed by your team administrator.</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Change Password Card -->
+    <mat-card class="settings-card password-card">
+      <mat-progress-bar *ngIf="submitting()" mode="indeterminate"></mat-progress-bar>
+
+      <div class="card-header">
+        <mat-icon class="card-header-icon">lock</mat-icon>
+        <h2 class="card-title">Change Password</h2>
+      </div>
+
+      <div class="password-body">
+        <p class="password-desc">
+          Ensure your account stays secure by using a strong password with at least 8 characters, letters, and numbers.
+        </p>
+
+        <!-- Success Alert -->
+        <div *ngIf="successMessage()" class="alert-banner alert-success">
+          <mat-icon class="alert-icon">check_circle</mat-icon>
+          <div class="alert-text">{{ successMessage() }}</div>
+        </div>
+
+        <!-- Error Alert -->
+        <div *ngIf="errorMessage()" class="alert-banner alert-error">
+          <mat-icon class="alert-icon">error</mat-icon>
+          <div class="alert-text">{{ errorMessage() }}</div>
+        </div>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="onSubmit()" class="password-form">
+          <!-- Current Password -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Current Password</mat-label>
+            <input
+              matInput
+              [type]="hideCurrent() ? 'password' : 'text'"
+              formControlName="currentPassword"
+              autocomplete="current-password"
+              placeholder="Enter your current password"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="toggleHideCurrent()"
+              [attr.aria-label]="hideCurrent() ? 'Show current password' : 'Hide current password'"
+            >
+              <mat-icon>{{ hideCurrent() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">
+              Current password is required
+            </mat-error>
+          </mat-form-field>
+
+          <!-- New Password -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>New Password</mat-label>
+            <input
+              matInput
+              [type]="hideNew() ? 'password' : 'text'"
+              formControlName="newPassword"
+              autocomplete="new-password"
+              placeholder="At least 8 characters"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="toggleHideNew()"
+              [attr.aria-label]="hideNew() ? 'Show new password' : 'Hide new password'"
+            >
+              <mat-icon>{{ hideNew() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-hint>Minimum 8 characters with both letters and numbers</mat-hint>
+            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">
+              New password is required
+            </mat-error>
+            <mat-error
+              *ngIf="
+                passwordForm.get('newPassword')?.hasError('minlength') ||
+                passwordForm.get('newPassword')?.hasError('pattern')
+              "
+            >
+              Must be at least 8 characters and contain both letters and digits
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Confirm Password -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Confirm New Password</mat-label>
+            <input
+              matInput
+              [type]="hideConfirm() ? 'password' : 'text'"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+              placeholder="Re-enter your new password"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="toggleHideConfirm()"
+              [attr.aria-label]="hideConfirm() ? 'Show confirm password' : 'Hide confirm password'"
+            >
+              <mat-icon>{{ hideConfirm() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">
+              Confirmation password is required
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Password Mismatch Error -->
+          <div
+            *ngIf="
+              passwordForm.hasError('passwordMismatch') &&
+              (passwordForm.get('confirmPassword')?.touched || passwordForm.get('confirmPassword')?.dirty)
+            "
+            class="mismatch-error"
+          >
+            <mat-icon class="inline-err-icon">error_outline</mat-icon>
+            <span>Passwords do not match. Please verify your new password.</span>
+          </div>
+
+          <!-- Security Notice -->
+          <div class="security-notice">
+            <mat-icon class="shield-icon">security</mat-icon>
+            <span>
+              <strong>Security Notice:</strong> Changing your password will invalidate active refresh tokens on all your other devices.
+            </span>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="submit-btn"
+              [disabled]="passwordForm.invalid || submitting()"
+            >
+              <mat-icon class="btn-icon">lock_reset</mat-icon>
+              {{ submitting() ? 'Updating Password...' : 'Update Password' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </mat-card>
+  </div>
+</div>

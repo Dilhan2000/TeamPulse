@@ -1,0 +1,81 @@
+<div class="dialog-container">
+      <div class="dialog-header">
+        <h2 mat-dialog-title class="dialog-title">
+          <mat-icon class="title-icon">{{ isEdit() ? 'edit' : 'add_business' }}</mat-icon>
+          <span>{{ isEdit() ? 'Edit Project' : 'Create New Project' }}</span>
+        </h2>
+        <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Close dialog">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-dialog-content class="dialog-content">
+          <p class="dialog-subtitle">
+            {{ isEdit() ? 'Update the project details below.' : 'Add a new project or category for team report tracking.' }}
+          </p>
+
+          <!-- Project Name Field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Project Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="e.g. Mobile App Redesign"
+              maxlength="150"
+            />
+            <mat-hint align="end">{{ form.get('name')?.value?.length || 0 }}/150</mat-hint>
+            @if (form.get('name')?.hasError('required')) {
+              <mat-error>Project name is required</mat-error>
+            }
+            @if (form.get('name')?.hasError('maxlength')) {
+              <mat-error>Project name must not exceed 150 characters</mat-error>
+            }
+            @if (form.get('name')?.hasError('duplicate')) {
+              <mat-error>A project with this name already exists</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Description Field -->
+          <mat-form-field appearance="outline" class="full-width desc-field">
+            <mat-label>Description (Optional)</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              rows="4"
+              placeholder="Brief description of the project deliverables, goals, or scope..."
+              maxlength="500"
+            ></textarea>
+            <mat-hint align="end">{{ form.get('description')?.value?.length || 0 }}/500</mat-hint>
+            @if (form.get('description')?.hasError('maxlength')) {
+              <mat-error>Description must not exceed 500 characters</mat-error>
+            }
+          </mat-form-field>
+
+          @if (errorMessage()) {
+            <div class="server-error-banner">
+              <mat-icon>error_outline</mat-icon>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+        </mat-dialog-content>
+
+        <mat-dialog-actions align="end" class="dialog-actions">
+          <button mat-button type="button" mat-dialog-close [disabled]="isSubmitting()">
+            Cancel
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="form.invalid || isSubmitting()"
+            class="submit-btn"
+          >
+            @if (isSubmitting()) {
+              <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+            }
+            <span>{{ isEdit() ? 'Save Changes' : 'Create Project' }}</span>
+          </button>
+        </mat-dialog-actions>
+      </form>
+    </div>

@@ -1,0 +1,101 @@
+.navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        background: #0f172a;
+        color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+      }
+      .brand-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        margin-right: 32px;
+      }
+      .brand-icon {
+        color: #38bdf8;
+      }
+      .brand-title {
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: -0.5px;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .nav-links a {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #94a3b8;
+        border-radius: 6px;
+      }
+      .nav-links a:hover {
+        color: #f8fafc;
+        background-color: rgba(255, 255, 255, 0.08);
+      }
+      .nav-links a.active-link {
+        color: #ffffff;
+        background-color: rgba(56, 189, 248, 0.15);
+      }
+      .spacer {
+        flex: 1 1 auto;
+      }
+      .user-profile-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .user-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+      .user-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #f8fafc;
+      }
+      .role-badge {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-top: 2px;
+      }
+      .role-badge.admin {
+        background-color: #7c3aed;
+        color: #f5f3ff;
+      }
+      .role-badge.manager {
+        background-color: #2563eb;
+        color: #eff6ff;
+      }
+      .role-badge.team_member {
+        background-color: #059669;
+        color: #ecfdf5;
+      }
+      .menu-user-details {
+        padding: 12px 16px;
+      }
+      .menu-name {
+        margin: 0;
+        font-weight: 600;
+        font-size: 14px;
+        color: #0f172a;
+      }
+      .menu-email {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: #64748b;
+      }

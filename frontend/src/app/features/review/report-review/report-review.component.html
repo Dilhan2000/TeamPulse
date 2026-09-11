@@ -1,0 +1,330 @@
+<div class="review-page-container">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <mat-spinner diameter="48"></mat-spinner>
+          <p>Loading report for review...</p>
+        </div>
+      } @else if (report()) {
+        @let rep = report()!;
+        <!-- Top Navigation & Action Header -->
+        <div class="header-action-bar">
+          <a mat-button routerLink="/manager/team-reports" class="back-link">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Back to Team Reports</span>
+          </a>
+
+          <div class="action-buttons">
+            <button
+              mat-stroked-button
+              type="button"
+              class="version-btn"
+              (click)="openVersionHistory(rep.id)"
+            >
+              <mat-icon>history</mat-icon>
+              <span>Version History</span>
+            </button>
+
+            @if (rep.status === 'SUBMITTED' || rep.status === 'NEEDS_CORRECTION') {
+              <button
+                mat-stroked-button
+                color="warn"
+                type="button"
+                [disabled]="isSubmittingAction()"
+                (click)="onRequestChanges(rep)"
+              >
+                <mat-icon>change_circle</mat-icon>
+                <span>Request Changes</span>
+              </button>
+
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="isSubmittingAction()"
+                (click)="onApprove(rep)"
+              >
+                <mat-icon>check_circle</mat-icon>
+                <span>Approve Report</span>
+              </button>
+            } @else if (rep.status === 'APPROVED') {
+              <div class="approved-badge">
+                <mat-icon>verified</mat-icon>
+                <span>Approved</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Correction Banner if report was in NEEDS_CORRECTION -->
+        @if (rep.status === 'NEEDS_CORRECTION' && rep.latestReview) {
+          <app-correction-banner
+            [comment]="rep.latestReview.comment"
+            [reviewerName]="rep.latestReview.reviewerName"
+            [reviewedAt]="rep.latestReview.reviewedAt"
+          ></app-correction-banner>
+        }
+
+        <!-- Report Overview Header Card -->
+        <mat-card class="overview-card">
+          <div class="overview-header">
+            <div>
+              <div class="week-heading">
+                Week of {{ rep.weekStartDate | date: 'MMMM d, y' }}
+              </div>
+              <div class="date-range">
+                {{ rep.weekStartDate | date: 'mediumDate' }} – {{ rep.weekEndDate | date: 'mediumDate' }}
+              </div>
+            </div>
+
+            <div class="status-box">
+              <span class="status-chip" [ngClass]="rep.status.toLowerCase()">
+                {{ formatStatus(rep.status) }}
+              </span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="metadata-grid">
+            <div class="meta-item">
+              <span class="meta-label">Team Member</span>
+              <span class="meta-value font-semibold">{{ rep.userName }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Project</span>
+              <span class="project-pill">{{ rep.projectName }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Submitted At</span>
+              <span class="meta-value">
+                {{ rep.submittedAt ? (rep.submittedAt | date: 'medium') : 'Not yet submitted' }}
+              </span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Total Hours</span>
+              <span class="meta-value highlight">{{ computeTotalHours(rep) }} hrs</span>
+            </div>
+          </div>
+        </mat-card>
+
+        <!-- Section 1: Tasks Completed -->
+        <mat-card class="section-card">
+          <div class="section-title-row">
+            <div class="section-title">
+              <mat-icon class="title-icon">task_alt</mat-icon>
+              <h2>Tasks Completed / In Progress</h2>
+            </div>
+            <span class="badge-count">{{ rep.tasksCompleted.length }} tasks</span>
+          </div>
+
+          @if (rep.tasksCompleted.length === 0) {
+            <p class="empty-text">No tasks recorded for this week.</p>
+          } @else {
+            <div class="table-responsive">
+              <table mat-table [dataSource]="rep.tasksCompleted" class="tasks-table">
+                <!-- Task Name -->
+                <ng-container matColumnDef="taskName">
+                  <th mat-header-cell *matHeaderCellDef>Task</th>
+                  <td mat-cell *matCellDef="let task" class="task-name-cell">
+                    <span class="task-name">{{ task.taskName }}</span>
+                    @if (task.deliverable) {
+                      <span class="deliverable-text">Deliverable: {{ task.deliverable }}</span>
+                    }
+                  </td>
+                </ng-container>
+
+                <!-- Priority -->
+                <ng-container matColumnDef="priority">
+                  <th mat-header-cell *matHeaderCellDef>Priority</th>
+                  <td mat-cell *matCellDef="let task">
+                    <span class="priority-badge" [ngClass]="task.priority.toLowerCase()">
+                      {{ task.priority }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <!-- Planned % -->
+                <ng-container matColumnDef="planned">
+                  <th mat-header-cell *matHeaderCellDef class="text-right">Planned %</th>
+                  <td mat-cell *matCellDef="let task" class="text-right font-mono">
+                    {{ task.plannedPercent }}%
+                  </td>
+                </ng-container>
+
+                <!-- Actual % -->
+                <ng-container matColumnDef="actual">
+                  <th mat-header-cell *matHeaderCellDef class="text-right">Actual %</th>
+                  <td mat-cell *matCellDef="let task" class="text-right font-mono font-semibold">
+                    {{ task.actualPercent }}%
+                  </td>
+                </ng-container>
+
+                <!-- Status -->
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Status</th>
+                  <td mat-cell *matCellDef="let task">
+                    <span class="progress-status-chip" [ngClass]="task.status.toLowerCase()">
+                      {{ formatStatus(task.status) }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <!-- Hours Planned -->
+                <ng-container matColumnDef="hoursPlanned">
+                  <th mat-header-cell *matHeaderCellDef class="text-right">Planned (hrs)</th>
+                  <td mat-cell *matCellDef="let task" class="text-right font-mono">
+                    {{ task.timePlannedHours }}
+                  </td>
+                </ng-container>
+
+                <!-- Hours Spent -->
+                <ng-container matColumnDef="hoursSpent">
+                  <th mat-header-cell *matHeaderCellDef class="text-right">Spent (hrs)</th>
+                  <td mat-cell *matCellDef="let task" class="text-right font-mono font-semibold">
+                    {{ task.timeSpentHours }}
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="taskColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: taskColumns"></tr>
+              </table>
+            </div>
+          }
+        </mat-card>
+
+        <!-- Section 2: Planned For Next Week -->
+        <mat-card class="section-card">
+          <div class="section-title-row">
+            <div class="section-title">
+              <mat-icon class="title-icon">next_plan</mat-icon>
+              <h2>Planned for Next Week</h2>
+            </div>
+            <span class="badge-count">{{ rep.tasksPlannedNextWeek.length }} items</span>
+          </div>
+
+          @if (rep.tasksPlannedNextWeek.length === 0) {
+            <p class="empty-text">No plans specified for next week.</p>
+          } @else {
+            <ul class="bullet-list">
+              @for (task of rep.tasksPlannedNextWeek; track $index) {
+                <li class="bullet-item">
+                  <mat-icon class="bullet-icon">arrow_forward</mat-icon>
+                  <span>{{ task.description }}</span>
+                </li>
+              }
+            </ul>
+          }
+        </mat-card>
+
+        <!-- Two Columns: Blockers & Achievements -->
+        <div class="two-col-grid">
+          <!-- Section 3: Blockers -->
+          <mat-card class="section-card">
+            <div class="section-title-row">
+              <div class="section-title">
+                <mat-icon class="title-icon text-danger">report_problem</mat-icon>
+                <h2>Blockers & Challenges</h2>
+              </div>
+              <span class="badge-count">{{ rep.blockers.length }}</span>
+            </div>
+
+            @if (rep.blockers.length === 0) {
+              <p class="empty-text">No blockers reported.</p>
+            } @else {
+              <div class="items-list">
+                @for (blocker of rep.blockers; track $index) {
+                  <div class="item-box" [class.key-issue-box]="blocker.isKeyIssue">
+                    <div class="item-header">
+                      @if (blocker.isKeyIssue) {
+                        <span class="key-tag key-issue-tag">
+                          <mat-icon class="tag-icon">warning</mat-icon>
+                          KEY ISSUE
+                        </span>
+                      }
+                      <span class="status-pill" [class.resolved]="blocker.resolved">
+                        {{ blocker.resolved ? 'Resolved' : 'Open' }}
+                      </span>
+                    </div>
+                    <p class="item-description">{{ blocker.description }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </mat-card>
+
+          <!-- Section 4: Achievements -->
+          <mat-card class="section-card">
+            <div class="section-title-row">
+              <div class="section-title">
+                <mat-icon class="title-icon text-success">emoji_events</mat-icon>
+                <h2>Key Achievements</h2>
+              </div>
+              <span class="badge-count">{{ rep.achievements.length }}</span>
+            </div>
+
+            @if (rep.achievements.length === 0) {
+              <p class="empty-text">No achievements recorded.</p>
+            } @else {
+              <div class="items-list">
+                @for (ach of rep.achievements; track $index) {
+                  <div class="item-box" [class.key-achievement-box]="ach.isKeyAchievement">
+                    <div class="item-header">
+                      @if (ach.isKeyAchievement) {
+                        <span class="key-tag key-achievement-tag">
+                          <mat-icon class="tag-icon">star</mat-icon>
+                          KEY ACHIEVEMENT
+                        </span>
+                      }
+                    </div>
+                    <p class="item-description">{{ ach.description }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </mat-card>
+        </div>
+
+        <!-- Section 5: Hours by Type & Notes -->
+        <div class="two-col-grid">
+          <mat-card class="section-card">
+            <div class="section-title-row">
+              <div class="section-title">
+                <mat-icon class="title-icon">schedule</mat-icon>
+                <h2>Hours by Task Type</h2>
+              </div>
+            </div>
+
+            @if (rep.hoursByType.length === 0) {
+              <p class="empty-text">No category breakdown provided.</p>
+            } @else {
+              <div class="hours-grid">
+                @for (h of rep.hoursByType; track h.taskType) {
+                  <div class="hour-card">
+                    <span class="hour-type">{{ formatTaskType(h.taskType) }}</span>
+                    <span class="hour-value">{{ h.hours }} hrs</span>
+                  </div>
+                }
+              </div>
+            }
+          </mat-card>
+
+          <mat-card class="section-card">
+            <div class="section-title-row">
+              <div class="section-title">
+                <mat-icon class="title-icon">notes</mat-icon>
+                <h2>Notes & Comments</h2>
+              </div>
+            </div>
+
+            @if (!rep.notes) {
+              <p class="empty-text">No additional notes provided.</p>
+            } @else {
+              <div class="notes-body">{{ rep.notes }}</div>
+            }
+          </mat-card>
+        </div>
+
+        <!-- Review History Section -->
+        <app-review-history [reviews]="reviews()"></app-review-history>
+      }
+    </div>

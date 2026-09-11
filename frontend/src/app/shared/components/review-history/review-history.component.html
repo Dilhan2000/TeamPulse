@@ -1,0 +1,49 @@
+@if (reviews && reviews.length > 0) {
+      <div class="review-history-card">
+        <div class="header">
+          <mat-icon class="header-icon">rate_review</mat-icon>
+          <h3 class="title">Review History</h3>
+          <span class="count-badge">{{ reviews.length }}</span>
+        </div>
+
+        <div class="timeline">
+          @for (rev of reviews; track rev.id) {
+            <div class="timeline-item" [class.approved]="rev.action === 'APPROVED'" [class.changes-requested]="rev.action === 'CHANGES_REQUESTED'">
+              <div class="timeline-marker">
+                <mat-icon class="marker-icon">
+                  {{ rev.action === 'APPROVED' ? 'check_circle' : 'change_circle' }}
+                </mat-icon>
+              </div>
+
+              <div class="timeline-content">
+                <div class="item-header">
+                  <div class="item-action-row">
+                    <span
+                      class="action-badge"
+                      [class.badge-approved]="rev.action === 'APPROVED'"
+                      [class.badge-changes]="rev.action === 'CHANGES_REQUESTED'"
+                    >
+                      {{ rev.action === 'APPROVED' ? 'Approved' : 'Changes Requested' }}
+                    </span>
+                    @if (rev.versionNumber) {
+                      <span class="version-tag">Version {{ rev.versionNumber }}</span>
+                    }
+                  </div>
+                  <span class="review-date">{{ rev.reviewedAt | date: 'medium' }}</span>
+                </div>
+
+                <div class="reviewer-row">
+                  <span class="reviewer-name">by {{ rev.reviewerName }}</span>
+                </div>
+
+                @if (rev.comment) {
+                  <div class="comment-bubble">
+                    <p class="comment-text">{{ rev.comment }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }

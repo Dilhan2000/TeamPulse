@@ -1,0 +1,23 @@
+<div class="status-page-container">
+      <mat-card class="status-card">
+        <div class="icon-circle">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+
+        <mat-card-title class="title">Registration Submitted</mat-card-title>
+
+        <mat-card-content class="content">
+          <p class="status-message">{{ message }}</p>
+          <p class="sub-message">
+            Once an administrator reviews and approves your account, you will be able to log in with
+            your credentials.
+          </p>
+        </mat-card-content>
+
+        <mat-card-actions class="actions centered-actions">
+          <a mat-flat-button color="primary" routerLink="/login" class="back-btn">
+            Return to Login
+          </a>
+        </mat-card-actions>
+      </mat-card>
+    </div>

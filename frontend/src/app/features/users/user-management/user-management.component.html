@@ -1,0 +1,153 @@
+<div class="page-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">User Management</h1>
+          <p class="page-subtitle">
+            Search, filter, and manage team member roles and account access
+          </p>
+        </div>
+      </div>
+
+      <!-- Filter Controls Bar -->
+      <mat-card class="filter-card">
+        <form [formGroup]="filterForm" class="filter-form">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search by name or email</mat-label>
+            <input matInput formControlName="search" placeholder="Filter users..." />
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="select-field">
+            <mat-label>Role</mat-label>
+            <mat-select formControlName="role">
+              <mat-option [value]="null">All Roles</mat-option>
+              <mat-option value="TEAM_MEMBER">Team Member</mat-option>
+              <mat-option value="MANAGER">Manager</mat-option>
+              <mat-option value="ADMIN">Admin</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="select-field">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              <mat-option [value]="null">All Statuses</mat-option>
+              <mat-option value="ACTIVE">Active</mat-option>
+              <mat-option value="PENDING_APPROVAL">Pending Approval</mat-option>
+              <mat-option value="DISABLED">Disabled</mat-option>
+              <mat-option value="REJECTED">Rejected</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-stroked-button type="button" (click)="resetFilters()">
+            <mat-icon>clear</mat-icon>
+            Reset
+          </button>
+        </form>
+      </mat-card>
+
+      <!-- Users Table Card -->
+      <mat-card class="table-card">
+        @if (isLoading()) {
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        }
+
+        <div class="table-container">
+          <table mat-table [dataSource]="users()" class="users-table">
+            <!-- Full Name -->
+            <ng-container matColumnDef="fullName">
+              <th mat-header-cell *matHeaderCellDef>Full Name</th>
+              <td mat-cell *matCellDef="let user" class="font-medium">
+                {{ user.fullName }}
+                @if (user.id === currentAdminId()) {
+                  <span class="self-tag">(You)</span>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Email -->
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let user">
+                {{ user.email }}
+              </td>
+            </ng-container>
+
+            <!-- Role Selection -->
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let user">
+                @if (user.role === 'ADMIN') {
+                  <span class="role-pill admin">ADMIN</span>
+                } @else {
+                  <mat-form-field appearance="outline" class="table-role-select">
+                    <mat-select
+                      [value]="user.role"
+                      (selectionChange)="onRoleChange(user, $event.value)"
+                      [disabled]="user.role === 'ADMIN' || isLoading()"
+                    >
+                      <mat-option value="TEAM_MEMBER">Team Member</mat-option>
+                      <mat-option value="MANAGER">Manager</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Status Toggle -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Account Access</th>
+              <td mat-cell *matCellDef="let user">
+                @if (user.status === 'PENDING_APPROVAL' || user.status === 'REJECTED') {
+                  <span class="status-badge" [ngClass]="user.status.toLowerCase()">
+                    {{ formatStatus(user.status) }}
+                  </span>
+                } @else {
+                  <div class="toggle-container">
+                    <mat-slide-toggle
+                      [checked]="user.status === 'ACTIVE'"
+                      (change)="onStatusToggle(user, $event.checked)"
+                      [disabled]="
+                        user.role === 'ADMIN' || user.id === currentAdminId() || isLoading()
+                      "
+                      color="primary"
+                    >
+                      <span class="status-label" [class.disabled-text]="user.status === 'DISABLED'">
+                        {{ user.status === 'ACTIVE' ? 'Active' : 'Disabled' }}
+                      </span>
+                    </mat-slide-toggle>
+                  </div>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Registered Date -->
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Joined</th>
+              <td mat-cell *matCellDef="let user">
+                {{ user.createdAt | date: 'mediumDate' }}
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+                @if (!isLoading()) {
+                  <p>No matching users found.</p>
+                }
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <mat-paginator
+          [length]="totalElements()"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)"
+          aria-label="Select page of users"
+        >
+        </mat-paginator>
+      </mat-card>
+    </div>

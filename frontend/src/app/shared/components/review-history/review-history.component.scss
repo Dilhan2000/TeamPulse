@@ -1,0 +1,167 @@
+.review-history-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .header-icon {
+        color: #6366f1;
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .count-badge {
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 9999px;
+      }
+
+      .timeline {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding-left: 8px;
+      }
+
+      .timeline-item {
+        display: flex;
+        gap: 16px;
+        position: relative;
+      }
+
+      .timeline-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        left: 13px;
+        top: 30px;
+        bottom: -20px;
+        width: 2px;
+        background: #e2e8f0;
+      }
+
+      .timeline-marker {
+        position: relative;
+        z-index: 1;
+      }
+
+      .marker-icon {
+        font-size: 26px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: #ffffff;
+      }
+
+      .approved .marker-icon {
+        color: #16a34a;
+      }
+
+      .changes-requested .marker-icon {
+        color: #f59e0b;
+      }
+
+      .timeline-content {
+        flex: 1;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 8px;
+        padding: 14px 16px;
+      }
+
+      .item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+
+      .item-action-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .action-badge {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .badge-approved {
+        background: #dcfce7;
+        color: #15803d;
+      }
+
+      .badge-changes {
+        background: #fef3c7;
+        color: #b45309;
+      }
+
+      .version-tag {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        background: #e2e8f0;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+
+      .review-date {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      .reviewer-row {
+        margin-bottom: 8px;
+      }
+
+      .reviewer-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #475569;
+      }
+
+      .comment-bubble {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin-top: 6px;
+      }
+
+      .comment-text {
+        margin: 0;
+        font-size: 14px;
+        color: #334155;
+        line-height: 1.5;
+        white-space: pre-line;
+      }

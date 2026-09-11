@@ -1,0 +1,242 @@
+.dialog-container {
+        width: 860px;
+        max-width: 95vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .title-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .title-icon {
+        color: #4f46e5;
+      }
+
+      .dialog-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .close-btn {
+        color: #64748b;
+      }
+
+      .dialog-body {
+        padding: 0;
+        min-height: 400px;
+        max-height: 65vh;
+        overflow-y: auto;
+      }
+
+      .loading-box,
+      .empty-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        gap: 12px;
+        color: #64748b;
+      }
+
+      .empty-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        color: #94a3b8;
+      }
+
+      .version-layout {
+        display: flex;
+        min-height: 400px;
+      }
+
+      .version-nav {
+        width: 240px;
+        border-right: 1px solid #e2e8f0;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .nav-header {
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .nav-list {
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .nav-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 12px 16px;
+        border: none;
+        background: transparent;
+        border-bottom: 1px solid #f1f5f9;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .nav-item:hover {
+        background: #f1f5f9;
+      }
+
+      .nav-item.active {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+      }
+
+      .item-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      .item-date {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+      }
+
+      .version-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .snapshot-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .snapshot-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .v-tag {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1d4ed8;
+        background: #dbeafe;
+        padding: 2px 10px;
+        border-radius: 9999px;
+      }
+
+      .status-pill {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: #e2e8f0;
+        color: #475569;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+
+      .snapshot-date {
+        font-size: 12px;
+        color: #64748b;
+      }
+
+      .snapshot-grid {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+        background: #f8fafc;
+        padding: 10px 14px;
+        border-radius: 6px;
+      }
+
+      .s-meta .label {
+        font-size: 12px;
+        color: #64748b;
+        margin-right: 6px;
+      }
+
+      .s-meta .value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      .snapshot-section {
+        margin-bottom: 18px;
+      }
+
+      .sec-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #334155;
+        margin: 0 0 8px;
+      }
+
+      .sec-empty {
+        font-size: 13px;
+        color: #94a3b8;
+        font-style: italic;
+        margin: 0;
+      }
+
+      .table-container {
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .snap-table {
+        width: 100%;
+      }
+
+      .deliv-text {
+        font-size: 11px;
+        color: #64748b;
+      }
+
+      .snap-list {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 13px;
+        color: #334155;
+        line-height: 1.6;
+      }
+
+      .snap-notes {
+        margin: 0;
+        font-size: 13px;
+        color: #334155;
+        white-space: pre-wrap;
+      }
+
+      .dialog-actions {
+        padding: 12px 20px;
+        border-top: 1px solid #e2e8f0;
+      }

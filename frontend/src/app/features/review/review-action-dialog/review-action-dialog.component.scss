@@ -1,0 +1,50 @@
+.dialog-content {
+        padding: 8px 4px;
+        min-width: 440px;
+        max-width: 520px;
+      }
+
+      .dialog-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .icon-approve {
+        color: #16a34a;
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+
+      .icon-request {
+        color: #d97706;
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+
+      .dialog-title {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .dialog-description {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #475569;
+        margin-bottom: 16px;
+      }
+
+      .full-width {
+        width: 100%;
+      }
+
+      .actions {
+        padding: 12px 0 4px;
+        display: flex;
+        gap: 8px;
+      }

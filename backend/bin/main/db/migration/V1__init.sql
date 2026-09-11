@@ -1,0 +1,3 @@
+-- V1: Flyway schema history bootstrap
+-- Real tables start from V2 (SRS01). This migration exists solely to prove
+-- the Flyway pipeline runs end-to-end on first boot.

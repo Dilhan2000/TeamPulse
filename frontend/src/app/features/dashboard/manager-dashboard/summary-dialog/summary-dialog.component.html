@@ -1,0 +1,78 @@
+<div class="dialog-container">
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <div class="header-titles">
+      <div class="ai-avatar">
+        <mat-icon>auto_awesome</mat-icon>
+      </div>
+      <div>
+        <h2 mat-dialog-title class="dialog-title">Weekly Team Summary</h2>
+        <span class="dialog-subtitle">Week of {{ data.weekStartDate | date:'mediumDate' }}</span>
+      </div>
+    </div>
+    <button mat-icon-button (click)="close()" aria-label="Close dialog" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Dialog Content -->
+  <mat-dialog-content class="dialog-body">
+    <!-- Loading state -->
+    <div *ngIf="loading()" class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <div class="loading-labels">
+        <span class="primary-label">Analyzing team weekly reports...</span>
+        <span class="secondary-label">Synthesizing completed work, recurring blockers, and workload distribution.</span>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div *ngIf="!loading() && errorMessage()" class="error-box">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <div class="error-content">
+        <span class="error-title">Unable to generate summary</span>
+        <span class="error-desc">{{ errorMessage() }}</span>
+      </div>
+      <button mat-stroked-button color="warn" (click)="generateSummary()" class="retry-btn">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </div>
+
+    <!-- Summary content -->
+    <div *ngIf="!loading() && !errorMessage() && summary()" class="summary-card">
+      <div class="summary-text">{{ summary() }}</div>
+    </div>
+  </mat-dialog-content>
+
+  <!-- Dialog Actions -->
+  <mat-dialog-actions align="end" class="dialog-footer">
+    <button
+      *ngIf="!loading() && summary()"
+      mat-button
+      class="regenerate-btn"
+      (click)="generateSummary()"
+      matTooltip="Regenerate summary"
+    >
+      <mat-icon>refresh</mat-icon>
+      Regenerate
+    </button>
+
+    <div class="footer-spacer"></div>
+
+    <button
+      *ngIf="!loading() && summary()"
+      mat-stroked-button
+      color="primary"
+      class="copy-btn"
+      (click)="copySummary()"
+    >
+      <mat-icon>{{ copied() ? 'done' : 'content_copy' }}</mat-icon>
+      {{ copied() ? 'Copied!' : 'Copy Summary' }}
+    </button>
+
+    <button mat-flat-button color="primary" (click)="close()" class="close-action-btn">
+      Close
+    </button>
+  </mat-dialog-actions>
+</div>

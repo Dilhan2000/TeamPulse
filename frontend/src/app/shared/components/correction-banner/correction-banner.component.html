@@ -1,0 +1,19 @@
+<div class="correction-banner" role="alert">
+      <div class="banner-icon-container">
+        <mat-icon class="banner-icon">feedback</mat-icon>
+      </div>
+      <div class="banner-content">
+        <div class="banner-title">
+          <span>Changes Requested</span>
+          @if (reviewerName) {
+            <span class="reviewer-tag">by {{ reviewerName }}</span>
+          }
+          @if (reviewedAt) {
+            <span class="review-date">{{ reviewedAt | date: 'medium' }}</span>
+          }
+        </div>
+        <div class="banner-message">
+          {{ comment || 'The reviewer requested corrections before this report can be approved.' }}
+        </div>
+      </div>
+    </div>

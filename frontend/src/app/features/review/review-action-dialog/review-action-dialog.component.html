@@ -1,0 +1,49 @@
+<div class="dialog-content">
+      <div class="dialog-header">
+        <mat-icon [class.icon-approve]="data.action === 'APPROVE'" [class.icon-request]="data.action === 'REQUEST_CHANGES'">
+          {{ data.action === 'APPROVE' ? 'check_circle' : 'change_circle' }}
+        </mat-icon>
+        <h2 mat-dialog-title class="dialog-title">
+          {{ data.action === 'APPROVE' ? 'Approve Report' : 'Request Changes' }}
+        </h2>
+      </div>
+
+      <mat-dialog-content>
+        <p class="dialog-description">
+          @if (data.action === 'APPROVE') {
+            Approve weekly report for <strong>{{ data.memberName }}</strong> (Week of {{ data.reportWeek }}). Once approved, the report is finalized.
+          } @else {
+            Request changes from <strong>{{ data.memberName }}</strong> (Week of {{ data.reportWeek }}). Please provide detailed feedback below explaining what needs revision.
+          }
+        </p>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            {{ data.action === 'APPROVE' ? 'Comment (Optional)' : 'Correction Feedback (Required)' }}
+          </mat-label>
+          <textarea
+            matInput
+            rows="4"
+            [(ngModel)]="comment"
+            [placeholder]="data.action === 'APPROVE' ? 'Add any encouragement or notes...' : 'Specify which tasks, deliverables, or hours require changes...'"
+            [required]="data.action === 'REQUEST_CHANGES'"
+          ></textarea>
+          @if (data.action === 'REQUEST_CHANGES' && isCommentInvalid()) {
+            <mat-error>Feedback is required when requesting changes</mat-error>
+          }
+        </mat-form-field>
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end" class="actions">
+        <button mat-button mat-dialog-close>Cancel</button>
+        <button
+          mat-flat-button
+          [color]="data.action === 'APPROVE' ? 'primary' : 'warn'"
+          [disabled]="data.action === 'REQUEST_CHANGES' && isCommentInvalid()"
+          (click)="onConfirm()"
+        >
+          <mat-icon>{{ data.action === 'APPROVE' ? 'done' : 'send' }}</mat-icon>
+          <span>{{ data.action === 'APPROVE' ? 'Approve Report' : 'Send Change Request' }}</span>
+        </button>
+      </mat-dialog-actions>
+    </div>

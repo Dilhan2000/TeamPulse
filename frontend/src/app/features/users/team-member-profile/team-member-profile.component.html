@@ -1,0 +1,208 @@
+<div class="profile-page">
+  <!-- Top Navigation & Actions -->
+  <div class="top-nav">
+    <button mat-button class="back-btn" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Team Reports
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loadingProfile()" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading team member profile...</p>
+  </div>
+
+  <!-- Profile Content -->
+  <ng-container *ngIf="!loadingProfile() && profile() as prof">
+    <!-- Header Card -->
+    <mat-card class="member-header-card">
+      <div class="header-main">
+        <div class="member-avatar">
+          {{ getInitials(prof.fullName) }}
+        </div>
+        <div class="member-info">
+          <div class="name-row">
+            <h1 class="member-name">{{ prof.fullName }}</h1>
+            <span class="account-badge" [ngClass]="prof.status.toLowerCase()">
+              {{ prof.status }}
+            </span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-item">
+              <mat-icon class="meta-icon">email</mat-icon>
+              {{ prof.email }}
+            </span>
+            <span class="meta-item">
+              <mat-icon class="meta-icon">calendar_today</mat-icon>
+              Member since {{ prof.createdAt | date: 'mediumDate' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="current-week-card">
+          <span class="cw-label">Current Week Status</span>
+          <span class="status-badge" [ngClass]="getStatusBadgeClass(prof.stats.currentWeekStatus)">
+            {{ formatStatus(prof.stats.currentWeekStatus) }}
+          </span>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- 5 KPI Stat Tiles -->
+    <section class="stats-grid">
+      <!-- Tile 1: Total Submitted -->
+      <mat-card class="stat-card">
+        <div class="stat-icon-wrapper blue">
+          <mat-icon>send</mat-icon>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Total Submitted</span>
+          <span class="stat-number">{{ prof.stats.totalReportsSubmitted }}</span>
+          <span class="stat-subtext">All-time report submissions</span>
+        </div>
+      </mat-card>
+
+      <!-- Tile 2: Approved -->
+      <mat-card class="stat-card">
+        <div class="stat-icon-wrapper green">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Approved</span>
+          <span class="stat-number text-green">{{ prof.stats.approvedCount }}</span>
+          <span class="stat-subtext">Reports accepted by manager</span>
+        </div>
+      </mat-card>
+
+      <!-- Tile 3: Sent Back for Correction -->
+      <mat-card class="stat-card" [class.has-warn]="prof.stats.needsCorrectionSentBackCount > 0">
+        <div class="stat-icon-wrapper amber">
+          <mat-icon>history_edu</mat-icon>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Sent Back for Revision</span>
+          <span class="stat-number" [class.text-amber]="prof.stats.needsCorrectionSentBackCount > 0">
+            {{ prof.stats.needsCorrectionSentBackCount }}
+          </span>
+          <span class="stat-subtext">Historical changes requested</span>
+        </div>
+      </mat-card>
+
+      <!-- Tile 4: Total Hours Logged -->
+      <mat-card class="stat-card">
+        <div class="stat-icon-wrapper purple">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Total Hours Logged</span>
+          <span class="stat-number">{{ prof.stats.totalHoursLogged | number: '1.1-2' }}</span>
+          <span class="stat-subtext">Across submitted & approved reports</span>
+        </div>
+      </mat-card>
+
+      <!-- Tile 5: Total Tasks Completed -->
+      <mat-card class="stat-card">
+        <div class="stat-icon-wrapper indigo">
+          <mat-icon>task_alt</mat-icon>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Tasks Completed</span>
+          <span class="stat-number">{{ prof.stats.totalTasksCompleted }}</span>
+          <span class="stat-subtext">Finished deliverables</span>
+        </div>
+      </mat-card>
+    </section>
+
+    <!-- Report History Section -->
+    <section class="history-section">
+      <mat-card class="history-card">
+        <div class="history-card-header">
+          <div class="header-left">
+            <h2 class="history-title">Report History</h2>
+            <span class="count-pill">{{ totalReports() }} reports</span>
+          </div>
+        </div>
+
+        <div *ngIf="loadingReports()" class="table-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+
+        <div *ngIf="!loadingReports() && reports().length === 0" class="empty-reports">
+          <mat-icon class="empty-icon">assignment</mat-icon>
+          <p>No reports found for this team member.</p>
+        </div>
+
+        <div *ngIf="!loadingReports() && reports().length > 0" class="table-container">
+          <table mat-table [dataSource]="reports()" class="reports-table">
+            <!-- Week Column -->
+            <ng-container matColumnDef="week">
+              <th mat-header-cell *matHeaderCellDef>Week of</th>
+              <td mat-cell *matCellDef="let r" class="week-cell">
+                <span class="week-date">{{ r.weekStartDate | date: 'mediumDate' }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Project Column -->
+            <ng-container matColumnDef="project">
+              <th mat-header-cell *matHeaderCellDef>Project</th>
+              <td mat-cell *matCellDef="let r">
+                <span class="project-tag">{{ r.projectName }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Submitted At Column -->
+            <ng-container matColumnDef="submittedAt">
+              <th mat-header-cell *matHeaderCellDef>Submitted</th>
+              <td mat-cell *matCellDef="let r">
+                <span *ngIf="r.submittedAt">{{ r.submittedAt | date: 'MMM d, y, h:mm a' }}</span>
+                <span *ngIf="!r.submittedAt" class="text-muted">Not submitted</span>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let r">
+                <span class="status-badge" [ngClass]="getStatusBadgeClass(r.status)">
+                  {{ formatStatus(r.status) }}
+                </span>
+              </td>
+            </ng-container>
+
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+              <td mat-cell *matCellDef="let r" class="actions-cell">
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  class="open-btn"
+                  [disabled]="r.status === 'DRAFT'"
+                  [matTooltip]="r.status === 'DRAFT' ? 'Draft content is private to author' : 'Review report'"
+                  (click)="openReport(r)"
+                >
+                  <mat-icon class="mini-btn-icon">open_in_new</mat-icon>
+                  {{ r.status === 'SUBMITTED' || r.status === 'NEEDS_CORRECTION' ? 'Review' : 'View' }}
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+
+          <mat-paginator
+            [length]="totalReports()"
+            [pageSize]="pageSize()"
+            [pageIndex]="pageIndex()"
+            [pageSizeOptions]="[5, 10, 25]"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+          ></mat-paginator>
+        </div>
+      </mat-card>
+    </section>
+  </ng-container>
+</div>

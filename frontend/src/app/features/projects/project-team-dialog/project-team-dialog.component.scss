@@ -1,0 +1,142 @@
+.team-dialog-container {
+        padding: 8px 12px;
+        min-width: 440px;
+        max-width: 540px;
+      }
+      .dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+      .dialog-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .title-icon {
+        color: #2563eb;
+      }
+      .close-btn {
+        color: #64748b;
+      }
+      .project-info-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 16px;
+      }
+      .project-name {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 14px;
+      }
+      .info-tag {
+        font-size: 11px;
+        color: #64748b;
+        background: #e2e8f0;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+      .dialog-content {
+        padding: 0;
+      }
+      .assign-bar {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .member-select {
+        flex: 1;
+      }
+      .assign-btn {
+        height: 52px;
+        font-weight: 600;
+      }
+      .assigned-section {
+        margin-top: 12px;
+      }
+      .section-title {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin: 0 0 10px;
+      }
+      .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        color: #64748b;
+        gap: 8px;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 24px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px dashed #cbd5e1;
+      }
+      .empty-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: #94a3b8;
+      }
+      .empty-text {
+        margin: 6px 0 0;
+        font-size: 13px;
+        color: #64748b;
+      }
+      .members-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 240px;
+        overflow-y: auto;
+      }
+      .member-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+      }
+      .member-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #e0e7ff;
+        color: #4338ca;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1e293b;
+      }
+      .dialog-actions {
+        padding: 16px 0 8px;
+      }

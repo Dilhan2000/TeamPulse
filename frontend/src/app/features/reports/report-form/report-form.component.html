@@ -1,0 +1,431 @@
+<div class="form-page-container">
+      @if (isLoading()) {
+        <div class="loading-shade">
+          <mat-spinner diameter="48"></mat-spinner>
+          <p>Loading report...</p>
+        </div>
+      } @else {
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="header-left">
+            <a mat-button routerLink="/reports" class="back-link">
+              <mat-icon>arrow_back</mat-icon>
+              <span>Back to History</span>
+            </a>
+            <h1 class="page-title">{{ existingReport()?.status === 'NEEDS_CORRECTION' ? 'Revise Weekly Report' : isEditMode() ? 'Edit Weekly Report' : 'New Weekly Report' }}</h1>
+            <p class="page-subtitle">
+              {{ existingReport()?.status === 'NEEDS_CORRECTION' ? 'Make the requested corrections and resubmit your weekly report for review' : isEditMode() ? 'Update your draft report before submitting for review' : 'Create a draft weekly status report for your project' }}
+            </p>
+          </div>
+
+          <div class="header-actions">
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="saveDraft()"
+              [disabled]="isSaving()"
+              class="action-btn"
+            >
+              <mat-icon>save</mat-icon>
+              <span>{{ existingReport()?.status === 'NEEDS_CORRECTION' ? 'Save Changes' : 'Save Draft' }}</span>
+            </button>
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="confirmSubmit()"
+              [disabled]="isSaving()"
+              class="action-btn submit-btn"
+            >
+              <mat-icon>send</mat-icon>
+              <span>{{ existingReport()?.status === 'NEEDS_CORRECTION' ? 'Resubmit for Review' : 'Submit for Review' }}</span>
+            </button>
+          </div>
+        </div>
+
+        @if (existingReport()?.status === 'NEEDS_CORRECTION' && existingReport()?.latestReview) {
+          <app-correction-banner
+            [comment]="existingReport()!.latestReview!.comment"
+            [reviewerName]="existingReport()!.latestReview!.reviewerName"
+            [reviewedAt]="existingReport()!.latestReview!.reviewedAt"
+          ></app-correction-banner>
+        }
+
+        @if (serverError()) {
+          <div class="error-banner">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ serverError() }}</span>
+          </div>
+        }
+
+        <form [formGroup]="reportForm" class="report-form-layout">
+          <!-- Section: Header Information -->
+          <mat-card class="form-section-card">
+            <h2 class="section-heading">
+              <mat-icon class="heading-icon">info</mat-icon>
+              <span>Report Details</span>
+            </h2>
+
+            <div class="header-grid">
+              <!-- Project Dropdown -->
+              <mat-form-field appearance="outline">
+                <mat-label>Project</mat-label>
+                <mat-select formControlName="projectId" required>
+                  @for (project of projects(); track project.id) {
+                    <mat-option [value]="project.id">{{ project.name }}</mat-option>
+                  }
+                </mat-select>
+                @if (reportForm.get('projectId')?.hasError('required')) {
+                  <mat-error>Project is required</mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Week Start Date -->
+              @if (!isEditMode()) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Week Start Date (Mondays only)</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="weekPicker"
+                    [matDatepickerFilter]="mondayDateFilter"
+                    formControlName="weekStartDate"
+                    placeholder="Select a Monday"
+                    required
+                  />
+                  <mat-datepicker-toggle matIconSuffix [for]="weekPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #weekPicker></mat-datepicker>
+                  <mat-hint>Reports run Monday through Sunday</mat-hint>
+                  @if (reportForm.get('weekStartDate')?.hasError('required')) {
+                    <mat-error>Week start date is required</mat-error>
+                  }
+                </mat-form-field>
+              } @else {
+                <div class="static-field">
+                  <span class="static-label">Week Range</span>
+                  <span class="static-value">
+                    {{ existingReport()?.weekStartDate | date:'mediumDate' }} – {{ existingReport()?.weekEndDate | date:'mediumDate' }}
+                  </span>
+                  <span class="static-hint">Week date cannot be changed once created</span>
+                </div>
+              }
+            </div>
+
+            <!-- Notes Field -->
+            <mat-form-field appearance="outline" class="full-width notes-field">
+              <mat-label>Notes & General Comments (Optional)</mat-label>
+              <textarea
+                matInput
+                formControlName="notes"
+                rows="3"
+                placeholder="Share overarching highlights, context, or notes for your manager"
+                maxlength="2000"
+              ></textarea>
+              <mat-hint align="end">{{ reportForm.get('notes')?.value?.length || 0 }} / 2000</mat-hint>
+            </mat-form-field>
+          </mat-card>
+
+          <!-- Section: Tasks Completed / In Progress -->
+          <mat-card class="form-section-card">
+            <div class="section-title-bar">
+              <h2 class="section-heading">
+                <mat-icon class="heading-icon">checklist</mat-icon>
+                <span>Tasks Completed / In Progress</span>
+              </h2>
+              <button mat-stroked-button color="primary" type="button" (click)="addTaskItem()">
+                <mat-icon>add</mat-icon>
+                <span>Add Task</span>
+              </button>
+            </div>
+
+            @if (tasksCompletedArray.controls.length === 0) {
+              <div class="empty-list-notice">
+                <p>No tasks added yet. Click "Add Task" above to log work done this week.</p>
+              </div>
+            } @else {
+              <div formArrayName="tasksCompleted" class="tasks-table-container">
+                @for (taskGroup of tasksCompletedArray.controls; track $index; let i = $index) {
+                  <div [formGroupName]="i" class="task-row-card">
+                    <div class="task-row-top">
+                      <span class="task-number">#{{ i + 1 }}</span>
+
+                      <mat-form-field appearance="outline" class="task-name-input">
+                        <mat-label>Task Name</mat-label>
+                        <input matInput formControlName="taskName" placeholder="e.g. Implement user login API" required />
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="task-priority-input">
+                        <mat-label>Priority</mat-label>
+                        <mat-select formControlName="priority">
+                          <mat-option value="LOW">Low</mat-option>
+                          <mat-option value="MEDIUM">Medium</mat-option>
+                          <mat-option value="HIGH">High</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="task-status-input">
+                        <mat-label>Status</mat-label>
+                        <mat-select formControlName="status">
+                          <mat-option value="NOT_STARTED">Not Started</mat-option>
+                          <mat-option value="IN_PROGRESS">In Progress</mat-option>
+                          <mat-option value="COMPLETED">Completed</mat-option>
+                          <mat-option value="BLOCKED">Blocked</mat-option>
+                          <mat-option value="DEFERRED">Deferred</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <button
+                        mat-icon-button
+                        color="warn"
+                        type="button"
+                        (click)="removeTaskItem(i)"
+                        matTooltip="Remove task"
+                        class="remove-btn"
+                      >
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    </div>
+
+                    <div class="task-row-bottom">
+                      <mat-form-field appearance="outline" class="pct-input">
+                        <mat-label>Planned %</mat-label>
+                        <input matInput type="number" formControlName="plannedPercent" min="0" max="100" />
+                        <span matTextSuffix>%</span>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="pct-input">
+                        <mat-label>Actual %</mat-label>
+                        <input matInput type="number" formControlName="actualPercent" min="0" max="100" />
+                        <span matTextSuffix>%</span>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="hrs-input">
+                        <mat-label>Planned (hrs)</mat-label>
+                        <input matInput type="number" step="0.5" formControlName="timePlannedHours" min="0" max="168" />
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="hrs-input">
+                        <mat-label>Spent (hrs)</mat-label>
+                        <input matInput type="number" step="0.5" formControlName="timeSpentHours" min="0" max="168" />
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="deliverable-input">
+                        <mat-label>Deliverable / PR Link (Optional)</mat-label>
+                        <input matInput formControlName="deliverable" placeholder="e.g. PR #42, Figma link" />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </mat-card>
+
+          <!-- Section: Tasks Planned for Next Week -->
+          <mat-card class="form-section-card">
+            <div class="section-title-bar">
+              <h2 class="section-heading">
+                <mat-icon class="heading-icon">next_plan</mat-icon>
+                <span>Tasks Planned for Next Week</span>
+              </h2>
+              <button mat-stroked-button color="primary" type="button" (click)="addNextWeekTask()">
+                <mat-icon>add</mat-icon>
+                <span>Add Planned Task</span>
+              </button>
+            </div>
+
+            @if (tasksPlannedNextWeekArray.controls.length === 0) {
+              <div class="empty-list-notice">
+                <p>No planned tasks added yet. Click "Add Planned Task" to outline next week's focus.</p>
+              </div>
+            } @else {
+              <div formArrayName="tasksPlannedNextWeek" class="repeatable-list">
+                @for (nextGroup of tasksPlannedNextWeekArray.controls; track $index; let i = $index) {
+                  <div [formGroupName]="i" class="list-item-row">
+                    <mat-icon class="row-bullet">arrow_right</mat-icon>
+                    <mat-form-field appearance="outline" class="flex-grow">
+                      <mat-label>Planned Task Description</mat-label>
+                      <input matInput formControlName="description" placeholder="e.g. Integrate payment gateway" required />
+                    </mat-form-field>
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      type="button"
+                      (click)="removeNextWeekTask(i)"
+                      matTooltip="Remove item"
+                    >
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </mat-card>
+
+          <!-- Two Columns Grid: Blockers & Achievements -->
+          <div class="two-col-grid">
+            <!-- Blockers -->
+            <mat-card class="form-section-card">
+              <div class="section-title-bar">
+                <h2 class="section-heading">
+                  <mat-icon class="heading-icon text-danger">report_problem</mat-icon>
+                  <span>Blockers & Challenges</span>
+                </h2>
+                <button mat-stroked-button color="primary" type="button" (click)="addBlocker()">
+                  <mat-icon>add</mat-icon>
+                  <span>Add Blocker</span>
+                </button>
+              </div>
+
+              @if (blockersArray.controls.length === 0) {
+                <div class="empty-list-notice">
+                  <p>No blockers reported.</p>
+                </div>
+              } @else {
+                <div formArrayName="blockers" class="repeatable-cards">
+                  @for (blockerGroup of blockersArray.controls; track $index; let i = $index) {
+                    <div [formGroupName]="i" class="blocker-card" [class.is-key]="blockerGroup.get('isKeyIssue')?.value">
+                      <div class="card-inputs">
+                        <mat-form-field appearance="outline" class="full-width">
+                          <mat-label>Blocker Description</mat-label>
+                          <input matInput formControlName="description" placeholder="Describe the impediment" required />
+                        </mat-form-field>
+
+                        <div class="blocker-flags">
+                          <mat-checkbox
+                            formControlName="isKeyIssue"
+                            (change)="onKeyIssueToggle(i, $event.checked)"
+                            color="warn"
+                          >
+                            <strong>Key Issue</strong> (at most one)
+                          </mat-checkbox>
+
+                          <mat-checkbox formControlName="resolved" color="primary">
+                            Resolved
+                          </mat-checkbox>
+
+                          <button
+                            mat-icon-button
+                            color="warn"
+                            type="button"
+                            (click)="removeBlocker(i)"
+                            matTooltip="Remove blocker"
+                          >
+                            <mat-icon>delete_outline</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </mat-card>
+
+            <!-- Key Achievements -->
+            <mat-card class="form-section-card">
+              <div class="section-title-bar">
+                <h2 class="section-heading">
+                  <mat-icon class="heading-icon text-success">emoji_events</mat-icon>
+                  <span>Key Achievements</span>
+                </h2>
+                <button mat-stroked-button color="primary" type="button" (click)="addAchievement()">
+                  <mat-icon>add</mat-icon>
+                  <span>Add Achievement</span>
+                </button>
+              </div>
+
+              @if (achievementsArray.controls.length === 0) {
+                <div class="empty-list-notice">
+                  <p>No achievements added yet.</p>
+                </div>
+              } @else {
+                <div formArrayName="achievements" class="repeatable-cards">
+                  @for (achGroup of achievementsArray.controls; track $index; let i = $index) {
+                    <div [formGroupName]="i" class="achievement-card" [class.is-key]="achGroup.get('isKeyAchievement')?.value">
+                      <div class="card-inputs">
+                        <mat-form-field appearance="outline" class="full-width">
+                          <mat-label>Achievement Description</mat-label>
+                          <input matInput formControlName="description" placeholder="Describe your win or milestone" required />
+                        </mat-form-field>
+
+                        <div class="achievement-flags">
+                          <mat-checkbox
+                            formControlName="isKeyAchievement"
+                            (change)="onKeyAchievementToggle(i, $event.checked)"
+                            color="accent"
+                          >
+                            <strong>Key Achievement</strong> (at most one)
+                          </mat-checkbox>
+
+                          <button
+                            mat-icon-button
+                            color="warn"
+                            type="button"
+                            (click)="removeAchievement(i)"
+                            matTooltip="Remove achievement"
+                          >
+                            <mat-icon>delete_outline</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </mat-card>
+          </div>
+
+          <!-- Section: Hours by Task Type -->
+          <mat-card class="form-section-card">
+            <div class="section-title-bar">
+              <h2 class="section-heading">
+                <mat-icon class="heading-icon">schedule</mat-icon>
+                <span>Hours by Task Type</span>
+              </h2>
+              <span class="hours-summary">Total: {{ totalHoursByType() }} hrs</span>
+            </div>
+
+            <p class="section-subtext">Optionally categorize your hours spent across standard activity types.</p>
+
+            <div [formGroup]="hoursGroup" class="hours-type-grid">
+              @for (type of taskTypes; track type) {
+                <div class="hour-field-card">
+                  <span class="hour-field-label">{{ formatTaskType(type) }}</span>
+                  <mat-form-field appearance="outline" class="hour-field-input">
+                    <input matInput type="number" step="0.5" [formControlName]="type" min="0" max="168" />
+                    <span matTextSuffix>hrs</span>
+                  </mat-form-field>
+                </div>
+              }
+            </div>
+          </mat-card>
+
+          <!-- Bottom Actions Bar -->
+          <div class="bottom-actions-bar">
+            <a mat-button routerLink="/reports">Cancel</a>
+
+            <div class="bottom-btn-group">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="saveDraft()"
+                [disabled]="isSaving()"
+              >
+                <mat-icon>save</mat-icon>
+                <span>Save Draft</span>
+              </button>
+
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                (click)="confirmSubmit()"
+                [disabled]="isSaving()"
+              >
+                <mat-icon>send</mat-icon>
+                <span>Submit for Review</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      }
+    </div>

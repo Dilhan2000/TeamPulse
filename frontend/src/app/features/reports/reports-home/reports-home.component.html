@@ -1,0 +1,17 @@
+<div class="welcome-container">
+      <mat-card class="welcome-card">
+        <mat-card-header>
+          <div mat-card-avatar class="user-avatar">
+            <mat-icon color="primary">assignment</mat-icon>
+          </div>
+          <mat-card-title>Welcome, {{ authService.currentUser()?.fullName }}!</mat-card-title>
+          <mat-card-subtitle>TeamPulse Dashboard</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="intro-text">
+            Your authentication session is active. Personal weekly report filing and review workflow
+            will be available in the next module (SRS02).
+          </p>
+        </mat-card-content>
+      </mat-card>
+    </div>

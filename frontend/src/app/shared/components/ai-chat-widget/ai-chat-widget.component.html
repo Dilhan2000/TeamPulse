@@ -1,0 +1,132 @@
+<ng-container *ngIf="shouldRender()">
+  <!-- Floating Action Button -->
+  <button
+    *ngIf="!isOpen()"
+    mat-fab
+    color="primary"
+    class="ai-widget-fab"
+    (click)="toggleOpen()"
+    matTooltip="Open AI Assistant"
+    aria-label="Open AI Assistant"
+  >
+    <mat-icon>auto_awesome</mat-icon>
+  </button>
+
+  <!-- Expanded Chat Panel -->
+  <div *ngIf="isOpen()" class="ai-chat-panel mat-elevation-z8">
+    <!-- Panel Header -->
+    <div class="chat-header">
+      <div class="header-left">
+        <div class="ai-avatar">
+          <mat-icon>auto_awesome</mat-icon>
+        </div>
+        <div class="header-text">
+          <h3 class="panel-title">TeamPulse AI Assistant</h3>
+          <span class="panel-subtitle">Grounded in team weekly reports</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button
+          mat-icon-button
+          class="header-btn"
+          (click)="clearHistory()"
+          matTooltip="Clear conversation"
+          [disabled]="messages().length === 0"
+          aria-label="Clear conversation"
+        >
+          <mat-icon>delete_sweep</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="header-btn"
+          (click)="close()"
+          matTooltip="Close"
+          aria-label="Close"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages Body -->
+    <div #scrollContainer class="chat-body">
+      <!-- Empty State / Welcome -->
+      <div *ngIf="messages().length === 0" class="welcome-box">
+        <div class="welcome-icon-circle">
+          <mat-icon>psychology</mat-icon>
+        </div>
+        <h4>Ask about your team's activity</h4>
+        <p>I can look up submitted weekly reports, extract blockers, summarize accomplishments, and help with team oversight.</p>
+        
+        <div class="quick-prompts-label">Suggested questions:</div>
+        <div class="quick-prompts-list">
+          <button
+            *ngFor="let prompt of quickPrompts"
+            type="button"
+            class="prompt-chip"
+            (click)="sendQuickPrompt(prompt)"
+          >
+            {{ prompt }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Message History -->
+      <div
+        *ngFor="let msg of messages()"
+        class="message-row"
+        [class.user-row]="msg.role === 'user'"
+        [class.assistant-row]="msg.role === 'assistant'"
+      >
+        <div *ngIf="msg.role === 'assistant'" class="avatar-small">
+          <mat-icon>smart_toy</mat-icon>
+        </div>
+
+        <div class="message-bubble" [class.user-bubble]="msg.role === 'user'" [class.assistant-bubble]="msg.role === 'assistant'">
+          <div class="bubble-text">{{ msg.content }}</div>
+        </div>
+      </div>
+
+      <!-- Thinking / Loading Indicator -->
+      <div *ngIf="isSending()" class="message-row assistant-row">
+        <div class="avatar-small">
+          <mat-icon>smart_toy</mat-icon>
+        </div>
+        <div class="message-bubble assistant-bubble thinking-bubble">
+          <mat-spinner diameter="18"></mat-spinner>
+          <span class="thinking-text">Searching team reports & formulating reply...</span>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage()" class="error-banner">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <span class="error-text">{{ errorMessage() }}</span>
+      </div>
+    </div>
+
+    <!-- Footer / Input Area -->
+    <div class="chat-footer">
+      <textarea
+        #chatInput
+        class="chat-textarea"
+        rows="1"
+        placeholder="Ask a question about weekly reports..."
+        [ngModel]="inputMessage()"
+        (ngModelChange)="inputMessage.set($event)"
+        (keydown)="onKeyDown($event)"
+        [disabled]="isSending()"
+      ></textarea>
+      <button
+        mat-mini-fab
+        color="primary"
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="!inputMessage().trim() || isSending()"
+        aria-label="Send message"
+      >
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+  </div>
+</ng-container>

@@ -1,0 +1,160 @@
+<div class="page-container">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Project Management</h1>
+          <p class="page-subtitle">
+            Configure project categories, manage active status, and assign team members
+          </p>
+        </div>
+        <button
+          mat-flat-button
+          color="primary"
+          class="add-btn"
+          (click)="openCreateDialog()"
+        >
+          <mat-icon>add</mat-icon>
+          <span>Add Project</span>
+        </button>
+      </div>
+
+      <!-- Filter Bar Card -->
+      <mat-card class="filter-card">
+        <div class="filter-bar">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search projects</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input
+              matInput
+              [(ngModel)]="searchQuery"
+              placeholder="Search by project name..."
+              (keyup.enter)="onSearchChange()"
+              (blur)="onSearchChange()"
+            />
+            @if (searchQuery) {
+              <button
+                matSuffix
+                mat-icon-button
+                aria-label="Clear"
+                (click)="searchQuery = ''; onSearchChange()"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="status-select">
+            <mat-label>Status Filter</mat-label>
+            <mat-select [(ngModel)]="statusFilter" (selectionChange)="onStatusFilterChange()">
+              <mat-option value="ALL">All Projects</mat-option>
+              <mat-option value="ACTIVE">Active Only</mat-option>
+              <mat-option value="INACTIVE">Inactive Only</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card>
+
+      <!-- Projects Table Card -->
+      <mat-card class="table-card">
+        @if (isLoading()) {
+          <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading projects...</p>
+          </div>
+        } @else if (projects().length === 0) {
+          <div class="empty-state">
+            <mat-icon class="empty-icon">folder_off</mat-icon>
+            <h3 class="empty-title">No projects found</h3>
+            <p class="empty-subtitle">
+              {{ searchQuery ? 'No projects match your search query.' : 'Create your first project using the "Add Project" button above.' }}
+            </p>
+          </div>
+        } @else {
+          <div class="table-container">
+            <table mat-table [dataSource]="projects()" class="projects-table">
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef class="name-header">Project Name</th>
+                <td mat-cell *matCellDef="let p" class="name-cell">
+                  <div class="project-identity">
+                    <div class="folder-icon-box">
+                      <mat-icon>folder</mat-icon>
+                    </div>
+                    <span class="project-name">{{ p.name }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Description Column -->
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Description</th>
+                <td mat-cell *matCellDef="let p" class="desc-cell">
+                  @if (p.description) {
+                    <span class="desc-text" [matTooltip]="p.description">{{ p.description }}</span>
+                  } @else {
+                    <span class="desc-placeholder">—</span>
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Status Column (Slide Toggle) -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef class="status-header">Active</th>
+                <td mat-cell *matCellDef="let p" class="status-cell">
+                  <div class="status-toggle-wrapper">
+                    <mat-slide-toggle
+                      color="primary"
+                      [checked]="p.active"
+                      (change)="onToggleStatus(p, $event.checked)"
+                      [matTooltip]="p.active ? 'Project is active' : 'Project is deactivated'"
+                      aria-label="Toggle project active status"
+                    >
+                      <span class="status-label" [ngClass]="{ active: p.active, inactive: !p.active }">
+                        {{ p.active ? 'Active' : 'Inactive' }}
+                      </span>
+                    </mat-slide-toggle>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+                <td mat-cell *matCellDef="let p" class="actions-cell">
+                  <button
+                    mat-stroked-button
+                    class="action-btn assign-btn"
+                    (click)="openTeamDialog(p)"
+                    matTooltip="Assign team members"
+                  >
+                    <mat-icon>groups</mat-icon>
+                    <span>Team</span>
+                  </button>
+                  <button
+                    mat-stroked-button
+                    class="action-btn edit-btn"
+                    (click)="openEditDialog(p)"
+                    matTooltip="Edit project details"
+                  >
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
+            </table>
+          </div>
+
+          <mat-paginator
+            [length]="totalElements()"
+            [pageSize]="pageSize()"
+            [pageIndex]="pageIndex()"
+            [pageSizeOptions]="[10, 25, 50]"
+            (page)="onPageChange($event)"
+            aria-label="Select page of projects"
+          ></mat-paginator>
+        }
+      </mat-card>
+    </div>

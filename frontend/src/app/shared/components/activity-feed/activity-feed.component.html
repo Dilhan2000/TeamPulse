@@ -1,0 +1,47 @@
+<div class="activity-feed-wrapper">
+      <div *ngIf="loading" class="feed-loading">
+        <mat-spinner diameter="36"></mat-spinner>
+        <span>Loading recent activity...</span>
+      </div>
+
+      <div *ngIf="!loading && (!items || items.length === 0)" class="empty-feed">
+        <mat-icon class="empty-icon">history_toggle_off</mat-icon>
+        <p class="empty-title">No recent activity</p>
+        <p class="empty-subtitle">Submissions and review actions will appear here in real time.</p>
+      </div>
+
+      <div *ngIf="!loading && items && items.length > 0" class="timeline-list">
+        <div
+          *ngFor="let item of items; trackBy: trackById"
+          class="timeline-item"
+          (click)="onItemClick(item)"
+          tabindex="0"
+          role="button"
+          (keydown.enter)="onItemClick(item)"
+        >
+          <div class="timeline-icon-col">
+            <div class="icon-circle" [ngClass]="getIconClass(item)">
+              <mat-icon>{{ getIconName(item) }}</mat-icon>
+            </div>
+            <div class="vertical-line"></div>
+          </div>
+
+          <div class="timeline-content">
+            <div class="item-header">
+              <span class="narrative-phrase">{{ formatNarrative(item) }}</span>
+              <span class="action-chip" [ngClass]="getActionChipClass(item)">
+                {{ formatActionText(item) }}
+              </span>
+              <span class="timestamp">{{ item.timestamp | date: 'MMM d, h:mm a' }}</span>
+            </div>
+
+            <div class="item-body" *ngIf="item.projectName">
+              <span class="project-tag">
+                <mat-icon class="mini-icon">folder_open</mat-icon>
+                {{ item.projectName }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

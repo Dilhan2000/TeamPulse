@@ -1,0 +1,404 @@
+<div class="dashboard-container">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Team Reports Dashboard</h1>
+          <p class="page-subtitle">Monitor team submissions, review reports, and view side-by-side section details</p>
+        </div>
+      </div>
+
+      <!-- Shared Filter Card -->
+      <mat-card class="filter-card">
+        <div class="filter-bar">
+          <!-- Week Picker (Active for Week & Section View) -->
+          @if (activeTab() === 0 || activeTab() === 2) {
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>Week (Monday)</mat-label>
+              <input
+                matInput
+                [matDatepicker]="weekPicker"
+                [matDatepickerFilter]="mondayDateFilter"
+                [(ngModel)]="selectedWeekDate"
+                (dateChange)="onWeekChange()"
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="weekPicker"></mat-datepicker-toggle>
+              <mat-datepicker #weekPicker></mat-datepicker>
+            </mat-form-field>
+          }
+
+          <!-- Date Range Pickers (Active for Range View) -->
+          @if (activeTab() === 1) {
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>Week Start From</mat-label>
+              <input
+                matInput
+                [matDatepicker]="pickerFrom"
+                [(ngModel)]="rangeFrom"
+                (dateChange)="onRangeFilterChange()"
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+              <mat-datepicker #pickerFrom></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>Week Start To</mat-label>
+              <input
+                matInput
+                [matDatepicker]="pickerTo"
+                [(ngModel)]="rangeTo"
+                (dateChange)="onRangeFilterChange()"
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerTo"></mat-datepicker-toggle>
+              <mat-datepicker #pickerTo></mat-datepicker>
+            </mat-form-field>
+          }
+
+          <!-- Team Member Dropdown -->
+          <mat-form-field appearance="outline" class="filter-item">
+            <mat-label>Team Member</mat-label>
+            <mat-select [(ngModel)]="selectedUserId" (selectionChange)="onFilterChange()">
+              <mat-option [value]="null">All Team Members</mat-option>
+              @for (m of teamMembers(); track m.id) {
+                <mat-option [value]="m.id">{{ m.fullName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Project Dropdown -->
+          <mat-form-field appearance="outline" class="filter-item">
+            <mat-label>Project</mat-label>
+            <mat-select [(ngModel)]="selectedProjectId" (selectionChange)="onFilterChange()">
+              <mat-option [value]="null">All Projects</mat-option>
+              @for (p of activeProjects(); track p.id) {
+                <mat-option [value]="p.id">{{ p.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Needs My Review Chip Toggle -->
+          <div class="toggle-container">
+            <button
+              type="button"
+              class="review-toggle-btn"
+              [class.active]="needsMyReview()"
+              (click)="toggleNeedsMyReview()"
+            >
+              <mat-icon class="toggle-icon">rate_review</mat-icon>
+              <span>Needs My Review</span>
+            </button>
+          </div>
+
+          <button mat-stroked-button class="reset-btn" (click)="resetFilters()">
+            <mat-icon>clear_all</mat-icon>
+            <span>Reset</span>
+          </button>
+        </div>
+      </mat-card>
+
+      <!-- Tab Navigation & Views -->
+      <mat-card class="content-card">
+        <mat-tab-group [selectedIndex]="activeTab()" (selectedIndexChange)="onTabChange($event)">
+          <!-- TAB 1: Week View (Team Status Grid) -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">view_week</mat-icon>
+              <span>Week View</span>
+            </ng-template>
+
+            <div class="tab-body">
+              @if (isLoadingWeek()) {
+                <div class="loading-shade">
+                  <mat-spinner diameter="44"></mat-spinner>
+                  <p>Loading week status...</p>
+                </div>
+              } @else if (filteredWeekRows().length === 0) {
+                <div class="empty-box">
+                  <mat-icon class="empty-icon">group_off</mat-icon>
+                  <p>No team members match the selected filters.</p>
+                </div>
+              } @else {
+                <div class="table-container">
+                  <table mat-table [dataSource]="filteredWeekRows()" class="custom-table">
+                    <!-- Name -->
+                    <ng-container matColumnDef="name">
+                      <th mat-header-cell *matHeaderCellDef>Team Member</th>
+                      <td mat-cell *matCellDef="let row" class="name-cell">
+                        <a class="member-link" [routerLink]="['/manager/team-members', row.userId]">
+                          <span class="user-avatar">{{ getInitials(row.fullName) }}</span>
+                          <span class="user-name">{{ row.fullName }}</span>
+                        </a>
+                      </td>
+                    </ng-container>
+
+                    <!-- Project -->
+                    <ng-container matColumnDef="project">
+                      <th mat-header-cell *matHeaderCellDef>Project</th>
+                      <td mat-cell *matCellDef="let row">
+                        @if (row.projectName) {
+                          <span class="project-pill">{{ row.projectName }}</span>
+                        } @else {
+                          <span class="text-muted">—</span>
+                        }
+                      </td>
+                    </ng-container>
+
+                    <!-- Status -->
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let row">
+                        <span class="status-chip" [ngClass]="row.status.toLowerCase()">
+                          {{ formatStatus(row.status) }}
+                        </span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Submitted At -->
+                    <ng-container matColumnDef="submittedAt">
+                      <th mat-header-cell *matHeaderCellDef>Submitted</th>
+                      <td mat-cell *matCellDef="let row" class="date-cell">
+                        {{ row.submittedAt ? (row.submittedAt | date: 'medium') : '—' }}
+                      </td>
+                    </ng-container>
+
+                    <!-- Action -->
+                    <ng-container matColumnDef="action">
+                      <th mat-header-cell *matHeaderCellDef class="action-col">Action</th>
+                      <td mat-cell *matCellDef="let row" class="action-col">
+                        @if (canOpenReport(row.status)) {
+                          <a
+                            mat-flat-button
+                            color="primary"
+                            [routerLink]="['/manager/reports', row.reportId, 'review']"
+                            class="open-btn"
+                          >
+                            <mat-icon>rate_review</mat-icon>
+                            <span>Review</span>
+                          </a>
+                        } @else {
+                          <button
+                            mat-stroked-button
+                            disabled
+                            [matTooltip]="row.status === 'DRAFT' ? 'Report is in draft — content is private' : 'Report not yet started'"
+                            class="disabled-btn"
+                          >
+                            <mat-icon>lock</mat-icon>
+                            <span>Open</span>
+                          </button>
+                        }
+                      </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="weekColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: weekColumns" class="table-row"></tr>
+                  </table>
+                </div>
+              }
+            </div>
+          </mat-tab>
+
+          <!-- TAB 2: Range View (Multi-Week Report List) -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">date_range</mat-icon>
+              <span>Range View</span>
+            </ng-template>
+
+            <div class="tab-body">
+              @if (isLoadingRange()) {
+                <div class="loading-shade">
+                  <mat-spinner diameter="44"></mat-spinner>
+                  <p>Loading multi-week reports...</p>
+                </div>
+              } @else if (rangeReports().length === 0) {
+                <div class="empty-box">
+                  <mat-icon class="empty-icon">assignment_late</mat-icon>
+                  <p>No reports found matching your date range and filter criteria.</p>
+                </div>
+              } @else {
+                <div class="table-container">
+                  <table mat-table [dataSource]="rangeReports()" class="custom-table">
+                    <!-- Member -->
+                    <ng-container matColumnDef="member">
+                      <th mat-header-cell *matHeaderCellDef>Team Member</th>
+                      <td mat-cell *matCellDef="let r" class="name-cell">
+                        <a class="member-link" [routerLink]="['/manager/team-members', r.userId]">
+                          <span class="user-avatar">{{ getInitials(r.fullName || 'U') }}</span>
+                          <span class="user-name">{{ r.fullName || 'Team Member' }}</span>
+                        </a>
+                      </td>
+                    </ng-container>
+
+                    <!-- Project -->
+                    <ng-container matColumnDef="project">
+                      <th mat-header-cell *matHeaderCellDef>Project</th>
+                      <td mat-cell *matCellDef="let r">
+                        <span class="project-pill">{{ r.projectName }}</span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Week -->
+                    <ng-container matColumnDef="week">
+                      <th mat-header-cell *matHeaderCellDef>Week</th>
+                      <td mat-cell *matCellDef="let r" class="week-cell">
+                        <span class="week-main">{{ r.weekStartDate | date: 'mediumDate' }}</span>
+                        <span class="week-sub">to {{ r.weekEndDate | date: 'mediumDate' }}</span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Submitted -->
+                    <ng-container matColumnDef="submittedAt">
+                      <th mat-header-cell *matHeaderCellDef>Submitted</th>
+                      <td mat-cell *matCellDef="let r" class="date-cell">
+                        {{ r.submittedAt ? (r.submittedAt | date: 'medium') : '—' }}
+                      </td>
+                    </ng-container>
+
+                    <!-- Status -->
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let r">
+                        <span class="status-chip" [ngClass]="r.status.toLowerCase()">
+                          {{ formatStatus(r.status) }}
+                        </span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Actions -->
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef class="action-col">Action</th>
+                      <td mat-cell *matCellDef="let r" class="action-col">
+                        @if (r.status !== 'DRAFT') {
+                          <a
+                            mat-flat-button
+                            color="primary"
+                            [routerLink]="['/manager/reports', r.id, 'review']"
+                            class="open-btn"
+                          >
+                            <mat-icon>rate_review</mat-icon>
+                            <span>Review</span>
+                          </a>
+                        } @else {
+                          <button mat-stroked-button disabled matTooltip="Draft content is private">
+                            <mat-icon>lock</mat-icon>
+                            <span>Open</span>
+                          </button>
+                        }
+                      </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="rangeColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: rangeColumns" class="table-row"></tr>
+                  </table>
+                </div>
+
+                <mat-paginator
+                  [length]="totalRangeElements()"
+                  [pageSize]="rangePageSize()"
+                  [pageIndex]="rangePageIndex()"
+                  [pageSizeOptions]="[5, 10, 25, 50]"
+                  (page)="onRangePageChange($event)"
+                  class="paginator"
+                >
+                </mat-paginator>
+              }
+            </div>
+          </mat-tab>
+
+          <!-- TAB 3: Section View (Side-by-Side) -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">view_column</mat-icon>
+              <span>Side-by-Side</span>
+            </ng-template>
+
+            <div class="tab-body">
+              <!-- Section Toggle -->
+              <div class="section-toggle-row">
+                <mat-button-toggle-group
+                  [ngModel]="selectedSection()"
+                  (ngModelChange)="onSectionChange($event)"
+                  name="sectionType"
+                  aria-label="Section Type"
+                >
+                  <mat-button-toggle value="BLOCKERS">
+                    <mat-icon>report_problem</mat-icon>
+                    <span>Blockers & Challenges</span>
+                  </mat-button-toggle>
+                  <mat-button-toggle value="ACHIEVEMENTS">
+                    <mat-icon>emoji_events</mat-icon>
+                    <span>Key Achievements</span>
+                  </mat-button-toggle>
+                </mat-button-toggle-group>
+              </div>
+
+              @if (isLoadingSection()) {
+                <div class="loading-shade">
+                  <mat-spinner diameter="44"></mat-spinner>
+                  <p>Loading section content across team...</p>
+                </div>
+              } @else if (filteredSectionRows().length === 0) {
+                <div class="empty-box">
+                  <mat-icon class="empty-icon">view_agenda</mat-icon>
+                  <p>No submitted reports found with {{ selectedSection().toLowerCase() }} for this week.</p>
+                </div>
+              } @else {
+                <div class="cards-grid">
+                  @for (row of filteredSectionRows(); track row.reportId) {
+                    <div class="member-card">
+                      <div class="member-card-header">
+                        <div class="user-meta">
+                          <span class="user-avatar">{{ getInitials(row.fullName) }}</span>
+                          <div>
+                            <h3 class="member-name">{{ row.fullName }}</h3>
+                            <span class="project-tag">{{ row.projectName }}</span>
+                          </div>
+                        </div>
+
+                        <div class="header-right">
+                          <span class="status-chip" [ngClass]="row.reportStatus.toLowerCase()">
+                            {{ formatStatus(row.reportStatus) }}
+                          </span>
+                          <a
+                            mat-icon-button
+                            color="primary"
+                            [routerLink]="['/manager/reports', row.reportId, 'review']"
+                            matTooltip="Review Report"
+                          >
+                            <mat-icon>open_in_new</mat-icon>
+                          </a>
+                        </div>
+                      </div>
+
+                      <div class="items-container">
+                        @if (row.items.length === 0) {
+                          <p class="no-items-text">None recorded.</p>
+                        } @else {
+                          @for (item of row.items; track $index) {
+                            <div class="item-entry" [class.highlighted]="item.flagged">
+                              <div class="entry-header">
+                                @if (item.flagged) {
+                                  <span class="flag-badge" [class.flag-issue]="selectedSection() === 'BLOCKERS'" [class.flag-ach]="selectedSection() === 'ACHIEVEMENTS'">
+                                    <mat-icon class="badge-icon">{{ selectedSection() === 'BLOCKERS' ? 'warning' : 'star' }}</mat-icon>
+                                    {{ selectedSection() === 'BLOCKERS' ? 'KEY ISSUE' : 'KEY ACHIEVEMENT' }}
+                                  </span>
+                                }
+                                @if (item.resolved !== undefined && item.resolved !== null) {
+                                  <span class="resolved-pill" [class.resolved]="item.resolved">
+                                    {{ item.resolved ? 'Resolved' : 'Open' }}
+                                  </span>
+                                }
+                              </div>
+                              <p class="entry-desc">{{ item.description }}</p>
+                            </div>
+                          }
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-card>
+    </div>

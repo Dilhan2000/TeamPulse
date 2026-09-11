@@ -1,0 +1,26 @@
+.unauthorized-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 16px;
+      }
+      .unauthorized-card {
+        max-width: 480px;
+        width: 100%;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      .icon-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fee2e2;
+        border-radius: 50%;
+      }
+      mat-card-content p {
+        margin-top: 16px;
+        color: #4b5563;
+        font-size: 15px;
+      }

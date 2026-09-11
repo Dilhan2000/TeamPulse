@@ -1,0 +1,92 @@
+<div class="team-dialog-container">
+      <div class="dialog-header">
+        <h2 mat-dialog-title class="dialog-title">
+          <mat-icon class="title-icon">group_add</mat-icon>
+          <span>Assign Team Members</span>
+        </h2>
+        <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Close dialog">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-dialog-content class="dialog-content">
+        <div class="project-info-banner">
+          <span class="project-name">{{ data.project.name }}</span>
+          <span class="info-tag">Informational Assignment</span>
+        </div>
+
+        <!-- Add Member Bar -->
+        <div class="assign-bar">
+          <mat-form-field appearance="outline" class="member-select">
+            <mat-label>Select Team Member</mat-label>
+            <mat-select [(ngModel)]="selectedUserId" placeholder="Choose a member to assign">
+              @for (member of availableMembers(); track member.id) {
+                <mat-option [value]="member.id">
+                  {{ member.fullName }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <button
+            mat-flat-button
+            color="primary"
+            class="assign-btn"
+            [disabled]="!selectedUserId || isAssigning()"
+            (click)="onAssign()"
+          >
+            @if (isAssigning()) {
+              <mat-spinner diameter="16"></mat-spinner>
+            } @else {
+              <mat-icon>person_add</mat-icon>
+            }
+            <span>Assign</span>
+          </button>
+        </div>
+
+        <!-- Current Assignees List -->
+        <div class="assigned-section">
+          <h3 class="section-title">
+            Assigned Members ({{ assignedMembers().length }})
+          </h3>
+
+          @if (isLoading()) {
+            <div class="loading-state">
+              <mat-spinner diameter="32"></mat-spinner>
+              <p>Loading assigned members...</p>
+            </div>
+          } @else if (assignedMembers().length === 0) {
+            <div class="empty-state">
+              <mat-icon class="empty-icon">people_outline</mat-icon>
+              <p class="empty-text">No team members assigned to this project yet.</p>
+            </div>
+          } @else {
+            <div class="members-list">
+              @for (member of assignedMembers(); track member.id) {
+                <div class="member-row">
+                  <div class="member-info">
+                    <span class="avatar">{{ getInitials(member.fullName) }}</span>
+                    <span class="name">{{ member.fullName }}</span>
+                  </div>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="onRemove(member)"
+                    matTooltip="Remove assignment"
+                    aria-label="Remove member"
+                  >
+                    <mat-icon>person_remove</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end" class="dialog-actions">
+        <button mat-flat-button color="primary" mat-dialog-close>
+          Done
+        </button>
+      </mat-dialog-actions>
+    </div>
